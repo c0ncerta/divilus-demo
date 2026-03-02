@@ -50,13 +50,8 @@ const normalizeEndpoint = (raw: string, fallbackProtocol: 'https:' | 'wss:' | 'h
   return parsed.toString().replace(/\/$/, '');
 };
 
-const parseBoolean = (value: unknown): boolean => {
-  if (typeof value !== 'string') return false;
-  const normalized = value.trim().toLowerCase();
-  return normalized === '1' || normalized === 'true' || normalized === 'yes' || normalized === 'on';
-};
-
-export const isDemoMode = parseBoolean(process.env.NEXT_PUBLIC_DEMO);
+// This repo is distributed as a public demo, so auth/login is permanently disabled.
+export const isDemoMode = true;
 
 const apiUrl = isDemoMode
   ? ''

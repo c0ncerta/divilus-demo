@@ -20,7 +20,6 @@ import { announce } from '../lib/a11y/announcer';
 import { Info, Menu, Settings2, Users, X } from 'lucide-react';
 
 // Lazy-load components not needed in demo mode
-const AuthModal = lazy(() => import('../components/modals/AuthModal').then(m => ({ default: m.AuthModal })));
 const LoginVideo = isDemoMode ? null : lazy(() => import('../components/LoginVideo'));
 
 const isObject = (v: any) => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -194,7 +193,6 @@ const areMessageListsEqual = (a: any[], b: any[]) => {
 export default function DiscordClone() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<'profile' | 'server'>('profile');
-  const [authOpen, setAuthOpen] = useState(false);
   const [socketStatus, setSocketStatus] = useState<'offline' | 'connecting' | 'online' | 'error'>('offline');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
@@ -536,7 +534,6 @@ export default function DiscordClone() {
       useStore.getState().upsertUsers(demoData.users);
       useStore.getState().setBackendToken(null);
       useStore.getState().loginUser(demoData.currentUser.id);
-      setAuthOpen(false);
       return;
     }
 
@@ -549,14 +546,12 @@ export default function DiscordClone() {
         useStore.getState().upsertUsers([session.user]);
         useStore.getState().loginUser(session.user.id);
         try { localStorage.setItem('diavlocord-session', session.user.id); } catch { }
-        if (!cancelled) setAuthOpen(false);
         return;
       }
 
       if (session.mode === 'local' && session.userId) {
         const ok = useStore.getState().loginUser(session.userId);
         if (ok) {
-          if (!cancelled) setAuthOpen(false);
           return;
         }
       }
@@ -564,11 +559,9 @@ export default function DiscordClone() {
       if (isBackendEnabled) {
         try { localStorage.removeItem('diavlocord-session'); } catch { }
         useStore.getState().logout();
-        if (!cancelled) setAuthOpen(true);
         return;
       }
-
-      if (!cancelled) setAuthOpen(true);
+      if (!cancelled) useStore.getState().logout();
     };
 
     void boot();
@@ -1031,12 +1024,6 @@ export default function DiscordClone() {
         onClose={() => setSettingsOpen(false)}
         initialTab={settingsTab}
       />
-
-      {!isDemoMode ? (
-        <Suspense fallback={null}>
-          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
-        </Suspense>
-      ) : null}
 
       {isBackendEnabled && backendToken ? (
         <div

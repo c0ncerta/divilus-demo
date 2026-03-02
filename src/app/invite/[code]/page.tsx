@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Link2, ShieldAlert, Users } from 'lucide-react';
 import { useStore } from '../../../lib/store';
 import type { ServerInvite } from '../../../lib/types';
-import { AuthModal } from '../../../components/modals/AuthModal';
 import { isBackendEnabled } from '../../../lib/env';
 import { mapBackendUser } from '../../../lib/backend-user';
 import { authProvider } from '../../../lib/providers/auth-provider';
@@ -104,14 +103,12 @@ export default function InvitePage() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState('');
   const [joined, setJoined] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
 
-  const [sessionReady, setSessionReady] = useState(!isBackendEnabled);
-  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState<boolean>(() => !isBackendEnabled);
 
   const [remoteInvite, setRemoteInvite] = useState<RemoteInvitePayload | null>(null);
-  const [remoteInviteLoading, setRemoteInviteLoading] = useState(isBackendEnabled);
-  const [remoteInviteLoaded, setRemoteInviteLoaded] = useState(!isBackendEnabled);
+  const [remoteInviteLoading, setRemoteInviteLoading] = useState<boolean>(() => isBackendEnabled);
+  const [remoteInviteLoaded, setRemoteInviteLoaded] = useState<boolean>(() => !isBackendEnabled);
 
   useEffect(() => {
     const persistApi = (useStore as any).persist;
@@ -141,7 +138,6 @@ export default function InvitePage() {
 
     const candidateToken = backendToken || getStoredBackendToken();
     if (!candidateToken) {
-      setSessionToken(null);
       setBackendToken(null);
       return null;
     }
@@ -154,16 +150,13 @@ export default function InvitePage() {
       if (!res.ok || !user?.id) {
         clearStoredBackendSession();
         setBackendToken(null);
-        setSessionToken(null);
         return null;
       }
       const mapped = mapBackendUser(user);
       upsertUsers([mapped]);
       loginUser(mapped.id);
-      setSessionToken(candidateToken);
       return candidateToken;
     } catch {
-      setSessionToken(candidateToken);
       return candidateToken;
     }
   }, [backendToken, setBackendToken, upsertUsers, loginUser]);
@@ -315,7 +308,7 @@ export default function InvitePage() {
     try {
       const token = await ensureBackendSession();
       if (!token) {
-        setAuthOpen(true);
+        setJoinError('No hay sesion activa para aceptar esta invitacion.');
         return;
       }
 
@@ -325,8 +318,6 @@ export default function InvitePage() {
       if (res.status === 401 || res.status === 403) {
         clearStoredBackendSession();
         setBackendToken(null);
-        setSessionToken(null);
-        setAuthOpen(true);
         setJoinError('Inicia sesion para aceptar la invitacion.');
         return;
       }
@@ -351,15 +342,6 @@ export default function InvitePage() {
     }
   };
 
-  const handleAuthClose = useCallback(() => {
-    setAuthOpen(false);
-    if (!isBackendEnabled) return;
-    void (async () => {
-      await ensureBackendSession();
-      await loadRemoteInvite();
-    })();
-  }, [ensureBackendSession, loadRemoteInvite]);
-
   const statusTitle: Record<InviteStatus, string> = {
     loading: 'Cargando invitacion...',
     invalid: 'Invitacion no encontrada',
@@ -378,9 +360,7 @@ export default function InvitePage() {
     revoked: 'El enlace fue revocado por administracion.',
     expired: 'El tiempo limite de esta invitacion ya termino.',
     maxed: 'Se alcanzo el maximo de usos para esta invitacion.',
-    valid: isBackendEnabled && !sessionToken
-      ? 'Necesitas iniciar sesion para aceptar esta invitacion.'
-      : 'Pulsa aceptar para unirte al servidor.',
+    valid: 'Pulsa aceptar para unirte al servidor.',
     member: 'Puedes volver directamente al chat principal.',
   };
 
@@ -482,9 +462,7 @@ export default function InvitePage() {
                     ? 'Procesando...'
                     : joined
                       ? 'Aceptado'
-                      : isBackendEnabled && !sessionToken
-                        ? 'Iniciar sesion y aceptar'
-                        : 'Aceptar invitacion'}
+                      : 'Aceptar invitacion'}
                 </button>
               ) : status === 'member' ? (
                 <button
@@ -499,8 +477,6 @@ export default function InvitePage() {
           </div>
         </div>
       </div>
-
-      <AuthModal open={authOpen} onClose={handleAuthClose} />
     </div>
   );
 }
