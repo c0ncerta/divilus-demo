@@ -1,0 +1,14 @@
+
+> discord-clone@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://169.254.157.237:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 1176ms
+○ Compiling / ...
+ GET / 200 in 1768ms (compile: 1307ms, render: 461ms)
+^C^C

@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String
+  discriminator String
+  passwordHash String
+  recoveryCode String? @unique
+  displayName  String?
+  pronouns     String?
+  bio          String?
+  avatar       String?
+  banner       String?
+  bannerColor  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  dmMembers    DmMember[]
+  dmMessages   DmMessage[]
+
+  friendRequestsSent     FriendRequest[] @relation("FriendRequestsSent")
+  friendRequestsReceived FriendRequest[] @relation("FriendRequestsReceived")
+
+  @@unique([username, discriminator])
+}
+
+model FriendRequest {
+  id        String   @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  status    FriendRequestStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fromUser User @relation("FriendRequestsSent", fields: [fromUserId], references: [id])
+  toUser   User @relation("FriendRequestsReceived", fields: [toUserId], references: [id])
+
+  @@unique([fromUserId, toUserId])
+}
+
+enum FriendRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model DmConversation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  members   DmMember[]
+  messages  DmMessage[]
+}
+
+model DmMember {
+  id             String @id @default(cuid())
+  conversationId String
+  userId         String
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id])
+  user         User           @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+}
+
+model DmMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  authorId       String
+  content        String
+  attachments    Json?
+  createdAt      DateTime @default(now())
+
+  conversation DmConversation @relation(fields: [conversationId], references: [id])
+  author       User           @relation(fields: [authorId], references: [id])
+
+  @@index([conversationId, createdAt])
+}
+
+model AppStateSnapshot {
+  id        String   @id
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

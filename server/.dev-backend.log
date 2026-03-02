@@ -1,0 +1,5 @@
+
+> diavlocord-server@0.1.0 dev
+> tsx watch src/index.ts
+
+diavlocord-server listening on http://localhost:3001

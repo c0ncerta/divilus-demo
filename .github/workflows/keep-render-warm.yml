@@ -1,0 +1,35 @@
+name: Keep Render Warm
+
+on:
+  schedule:
+    - cron: '*/7 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: keep-render-warm
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping backend /health
+        env:
+          RENDER_HEALTHCHECK_URL: ${{ secrets.RENDER_HEALTHCHECK_URL }}
+        run: |
+          URL="${RENDER_HEALTHCHECK_URL:-https://diavlocord.onrender.com/health}"
+          echo "Pinging: $URL"
+
+          HTTP_CODE=$(curl -L -sS -o /tmp/health_response.txt -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 25 \
+            "$URL")
+
+          echo "HTTP $HTTP_CODE"
+          cat /tmp/health_response.txt || true
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Healthcheck failed"
+            exit 1
+          fi

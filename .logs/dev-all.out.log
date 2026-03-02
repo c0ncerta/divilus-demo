@@ -1,0 +1,113 @@
+
+> discord-clone@0.1.0 dev:all
+> concurrently -n web,server -c cyan,magenta "npm run dev" "npm run dev:server"
+
+[web] 
+[web] > discord-clone@0.1.0 dev
+[web] > next dev
+[web] 
+[server] 
+[server] > discord-clone@0.1.0 dev:server
+[server] > npm run dev --prefix server
+[server] 
+[server] 
+[server] > diavlocord-server@0.1.0 dev
+[server] > tsx watch src/index.ts
+[server] 
+[web] ▲ Next.js 16.1.6 (Turbopack)
+[web] - Local:         http://localhost:3000
+[web] - Network:       http://10.5.0.2:3000
+[web] - Environments: .env.local
+[web] 
+[web] ✓ Starting...
+[server] diavlocord-server listening on http://localhost:3001
+[web] Failed to benchmark file I/O: El sistema no puede encontrar la ruta especificada. (os error 3)
+[web] ✓ Ready in 1398ms
+[web] ○ Compiling / ...
+[web]  GET / 200 in 10.3s (compile: 9.9s, render: 437ms)
+[web]  GET / 200 in 185ms (compile: 19ms, render: 166ms)
+[web]  GET / 200 in 88ms (compile: 9ms, render: 79ms)
+[web]  GET / 200 in 114ms (compile: 12ms, render: 102ms)
+[web]  GET / 200 in 133ms (compile: 11ms, render: 121ms)
+[web]  GET / 200 in 115ms (compile: 9ms, render: 106ms)
+[web]  GET / 200 in 137ms (compile: 16ms, render: 121ms)
+[web] [?25h
+[web] npm run dev exited with code 4294967295
+[server] 21:24:39 [tsx] change in ./src\index.ts Rerunning...
+[server] cdiavlocord-server listening on http://localhost:3001
+[server] 21:28:32 [tsx] change in ./src\index.ts Restarting...
+[server] cnode:events:497
+[server]       throw er; // Unhandled 'error' event
+[server]       ^
+[server] 
+[server] Error: listen EADDRINUSE: address already in use :::3001
+[server]     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+[server]     at listenInCluster (node:net:1997:12)
+[server]     at Server.listen (node:net:2102:7)
+[server]     at <anonymous> (C:\Users\Diavlo\DiavloCord\server\src\index.ts:306:12)
+[server]     at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+[server]     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+[server]     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+[server] Emitted 'error' event on Server instance at:
+[server]     at emitErrorNT (node:net:1976:8)
+[server]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+[server]   code: 'EADDRINUSE',
+[server]   errno: -4091,
+[server]   syscall: 'listen',
+[server]   address: '::',
+[server]   port: 3001
+[server] }
+[server] 
+[server] Node.js v22.20.0
+[server] 21:32:12 [tsx] change in ./src\socket.ts Rerunning...
+[server] cnode:events:497
+[server]       throw er; // Unhandled 'error' event
+[server]       ^
+[server] 
+[server] Error: listen EADDRINUSE: address already in use :::3001
+[server]     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+[server]     at listenInCluster (node:net:1997:12)
+[server]     at Server.listen (node:net:2102:7)
+[server]     at <anonymous> (C:\Users\Diavlo\DiavloCord\server\src\index.ts:306:12)
+[server]     at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+[server]     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+[server]     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+[server] Emitted 'error' event on Server instance at:
+[server]     at emitErrorNT (node:net:1976:8)
+[server]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+[server]   code: 'EADDRINUSE',
+[server]   errno: -4091,
+[server]   syscall: 'listen',
+[server]   address: '::',
+[server]   port: 3001
+[server] }
+[server] 
+[server] Node.js v22.20.0
+[server] 21:32:45 [tsx] change in ./src\index.ts Rerunning...
+[server] cdiavlocord-server listening on http://localhost:3001
+[server] 21:32:55 [tsx] change in ./src\index.ts Restarting...
+[server] cdiavlocord-server listening on http://localhost:3001
+[server] 21:35:13 [tsx] change in ./src\index.ts Restarting...
+[server] cnode:events:497
+[server]       throw er; // Unhandled 'error' event
+[server]       ^
+[server] 
+[server] Error: listen EADDRINUSE: address already in use :::3001
+[server]     at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+[server]     at listenInCluster (node:net:1997:12)
+[server]     at Server.listen (node:net:2102:7)
+[server]     at <anonymous> (C:\Users\Diavlo\DiavloCord\server\src\index.ts:368:12)
+[server]     at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+[server]     at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+[server]     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+[server] Emitted 'error' event on Server instance at:
+[server]     at emitErrorNT (node:net:1976:8)
+[server]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+[server]   code: 'EADDRINUSE',
+[server]   errno: -4091,
+[server]   syscall: 'listen',
+[server]   address: '::',
+[server]   port: 3001
+[server] }
+[server] 
+[server] Node.js v22.20.0

@@ -1,0 +1,59 @@
+{
+  "appId": "com.diavlocord.desktop",
+  "productName": "DiavloCord",
+  "directories": {
+    "output": "dist-desktop"
+  },
+  "files": [
+    "desktop/**/*",
+    "package.json"
+  ],
+  "extraMetadata": {
+    "main": "desktop/main.cjs"
+  },
+  "linux": {
+    "icon": "build/icon.png",
+    "category": "Network",
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "pacman",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "artifactName": "DiavloCord-${version}-${arch}.${ext}"
+  },
+  "win": {
+    "icon": "build/icon.ico",
+    "signAndEditExecutable": false,
+    "target": [
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "artifactName": "DiavloCord-${version}-${arch}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "DiavloCord"
+  }
+}
