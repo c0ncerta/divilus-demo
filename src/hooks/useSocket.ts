@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { eventBus } from '../lib/event-bus';
 import { useStore } from '../lib/store';
-import { isBackendEnabled } from '../lib/env';
+import { isBackendEnabled, isDemoMode } from '../lib/env';
 import { disconnectSocket, getSocket } from '../services/socket-client';
 import { mapBackendUser } from '../lib/backend-user';
 import { ensureOwnersHaveAdminRole } from '../lib/server-owner-admin';
@@ -58,9 +58,9 @@ const buildServerSyncSignature = (servers: any[]): string => {
       const categoryCount = Array.isArray(server?.categories) ? server.categories.length : 0;
       const channelCount = Array.isArray(server?.categories)
         ? server.categories.reduce(
-            (sum: number, category: any) => sum + (Array.isArray(category?.channels) ? category.channels.length : 0),
-            0
-          )
+          (sum: number, category: any) => sum + (Array.isArray(category?.channels) ? category.channels.length : 0),
+          0
+        )
         : 0;
       const memberCount = Array.isArray(server?.members) ? server.members.length : 0;
       const roleCount = Array.isArray(server?.roles) ? server.roles.length : 0;
@@ -95,7 +95,14 @@ const normalizeIncomingAttachments = (value: unknown) => {
   return normalized.length > 0 ? normalized : undefined;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => { };
+
 export const useSocket = () => {
+  // In demo mode, skip ALL socket/backend logic — no timers, no listeners, no polling.
+  if (isDemoMode) return;
+
+  /* eslint-disable react-hooks/rules-of-hooks -- conditional is constant at build time */
   const { addMessage, updateMessage, deleteMessage, setTyping, setPresence, toggleReaction, insertChannel, voiceJoin, voiceLeave, setVoiceMemberState, setSpeaking, receiveDMRequest, upsertUsers, updateCurrentUser, backendToken } = useStore();
   const speakingTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
   const workspaceSyncInFlightRef = useRef(false);
@@ -107,7 +114,7 @@ export const useSocket = () => {
       if (payload.senderId === eventBus.clientId) return;
       // Don't process events from self for store updates that already happened locally
       // but do process for multi-tab sync (senderId !== 'local')
-      
+
       switch (payload.type) {
         case 'MESSAGE_CREATED':
           addMessage(payload.data.channelId, payload.data.message);
@@ -144,9 +151,9 @@ export const useSocket = () => {
                   channels: (category.channels || []).map((channel: any) =>
                     channel.id === payload.data.channelId
                       ? {
-                          ...channel,
-                          ...(payload.data.updates || {}),
-                        }
+                        ...channel,
+                        ...(payload.data.updates || {}),
+                      }
                       : channel
                   ),
                 })),
@@ -745,7 +752,7 @@ export const useSocket = () => {
     const requestVoiceSnapshot = () => {
       try {
         socket.emit('voice:snapshot:request');
-      } catch {}
+      } catch { }
     };
     const syncWorkspaceOnConnect = () => {
       void syncWorkspaceServers(true);
@@ -762,8 +769,8 @@ export const useSocket = () => {
     const workspaceSyncIntervalId =
       typeof window !== 'undefined'
         ? window.setInterval(() => {
-            void syncWorkspaceServers(false);
-          }, WORKSPACE_SYNC_POLL_MS)
+          void syncWorkspaceServers(false);
+        }, WORKSPACE_SYNC_POLL_MS)
         : null;
     const onOnline = () => {
       void syncWorkspaceServers(true);

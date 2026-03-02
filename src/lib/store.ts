@@ -210,6 +210,7 @@ const loadUsersFromStorage = (): User[] => {
 };
 
 const saveUsersToStorage = (users: User[]) => {
+  if (isDemoMode) return;
   if (typeof window === 'undefined') return;
   const safeUsers = sanitizeUsersForUsersStorage(users);
   const payload = JSON.stringify(safeUsers);
@@ -903,7 +904,7 @@ interface AppState {
 export const useStore = create<AppState>()(
   persist(
     (set): AppState => {
-      const storedUsers = loadUsersFromStorage();
+      const storedUsers = isDemoMode ? [] : loadUsersFromStorage();
       const bootUsers = storedUsers.length > 0 ? storedUsers : [seedData.currentUser];
 
       // Ensure current user is always in the users array
@@ -911,7 +912,7 @@ export const useStore = create<AppState>()(
         ? bootUsers
         : [...bootUsers, seedData.currentUser];
 
-      if (storedUsers.length === 0) {
+      if (!isDemoMode && storedUsers.length === 0) {
         saveUsersToStorage(allUsers);
       }
 
@@ -3043,6 +3044,9 @@ export const useStore = create<AppState>()(
         return state;
       },
       partialize: (state) => {
+        // In demo mode, skip all persistence — data comes from demo-data.ts.
+        if (isDemoMode) return {} as any;
+
         const backendSessionActive = Boolean(isBackendEnabled && state.backendToken);
         const persistWorkspaceSnapshot = !backendSessionActive;
         const persistDmSnapshot = !backendSessionActive;

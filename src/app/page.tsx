@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { ServerSidebar } from '../components/layout/ServerSidebar';
 import { ChannelSidebar } from '../components/layout/ChannelSidebar';
 import { RightSidebar } from '../components/layout/RightSidebar';
 import { ChatView } from '../components/chat/ChatView';
 import { useSocket } from '../hooks/useSocket';
 import { SettingsModal } from '../components/modals/SettingsModal';
-import { AuthModal } from '../components/modals/AuthModal';
-import LoginVideo from '../components/LoginVideo';
 import { useStore } from '../lib/store';
 import { env, isBackendEnabled, isDemoMode } from '../lib/env';
 import { mapBackendUser } from '../lib/backend-user';
@@ -20,6 +18,10 @@ import { getSocket } from '../services/socket-client';
 import { cn } from '../lib/utils';
 import { announce } from '../lib/a11y/announcer';
 import { Info, Menu, Settings2, Users, X } from 'lucide-react';
+
+// Lazy-load components not needed in demo mode
+const AuthModal = lazy(() => import('../components/modals/AuthModal').then(m => ({ default: m.AuthModal })));
+const LoginVideo = isDemoMode ? null : lazy(() => import('../components/LoginVideo'));
 
 const isObject = (v: any) => !!v && typeof v === 'object' && !Array.isArray(v);
 const hasMembershipInServers = (servers: any[], userId: string) =>
@@ -528,20 +530,19 @@ export default function DiscordClone() {
   useEffect(() => {
     let cancelled = false;
 
+    // In demo mode, boot is synchronous — no async needed, no network calls.
+    if (isDemoMode) {
+      useStore.getState().resetData();
+      useStore.getState().upsertUsers(demoData.users);
+      useStore.getState().setBackendToken(null);
+      useStore.getState().loginUser(demoData.currentUser.id);
+      setAuthOpen(false);
+      return;
+    }
+
     const boot = async () => {
       if (typeof window === 'undefined') return;
       const session = await authProvider.bootstrapSession();
-
-      if (session.mode === 'demo') {
-        useStore.getState().resetData();
-        useStore.getState().upsertUsers(demoData.users);
-        useStore.getState().setBackendToken(null);
-        useStore.getState().loginUser(demoData.currentUser.id);
-        try { localStorage.setItem('diavlocord-session', demoData.currentUser.id); } catch { }
-        try { localStorage.removeItem('diavlocord-backend-token'); } catch { }
-        if (!cancelled) setAuthOpen(false);
-        return;
-      }
 
       if (session.mode === 'backend' && session.user && session.token) {
         useStore.getState().setBackendToken(session.token);
@@ -577,7 +578,7 @@ export default function DiscordClone() {
   }, []);
 
   useEffect(() => {
-    if (!isBackendEnabled || !backendToken || !currentUserId) return;
+    if (isDemoMode || !isBackendEnabled || !backendToken || !currentUserId) return;
     const hydrationKey = `${backendToken}:${currentUserId}`;
     if (hydratedForRef.current === hydrationKey) return;
 
@@ -611,7 +612,7 @@ export default function DiscordClone() {
   }, [backendToken, currentUserId]);
 
   useEffect(() => {
-    if (!isBackendEnabled || !backendToken) {
+    if (isDemoMode || !isBackendEnabled || !backendToken) {
       setSocketStatus('offline');
       return;
     }
@@ -641,7 +642,7 @@ export default function DiscordClone() {
   }, [backendToken]);
 
   useEffect(() => {
-    if (!isBackendEnabled || !backendToken || !currentUserId) return;
+    if (isDemoMode || !isBackendEnabled || !backendToken || !currentUserId) return;
     const hydrationKey = `${backendToken}:${currentUserId}`;
     if (hydratedForRef.current !== hydrationKey) return;
 
@@ -693,7 +694,7 @@ export default function DiscordClone() {
   }, [backendToken, currentUserId]);
 
   useEffect(() => {
-    if (!isBackendEnabled || !backendToken || !currentUserId) return;
+    if (isDemoMode || !isBackendEnabled || !backendToken || !currentUserId) return;
 
     let cancelled = false;
     let refreshInFlight = false;
@@ -837,22 +838,18 @@ export default function DiscordClone() {
         <div className="fixed top-1 left-1/2 -translate-x-1/2 z-[640] pointer-events-auto">
           <div className="px-2.5 py-1 rounded-lg border border-neon-blue/35 bg-black/65 backdrop-blur-xl shadow-[0_12px_30px_rgba(0,0,0,0.45)] flex items-center gap-3">
             <span className="text-[10px] font-black uppercase tracking-[0.14em] text-neon-blue">
-              Modo Demo (datos simulados)
+              ⚡ Demo — Sin login · Datos simulados
             </span>
-            <a
-              href="/"
-              className="text-[10px] font-black uppercase tracking-[0.12em] text-white/85 hover:text-white underline underline-offset-4"
-            >
-              Ver demo (sin login)
-            </a>
-            <a
-              href={env.realAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-black uppercase tracking-[0.12em] text-white/85 hover:text-white underline underline-offset-4"
-            >
-              App real
-            </a>
+            {env.realAppUrl ? (
+              <a
+                href={env.realAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-black uppercase tracking-[0.12em] text-white/85 hover:text-white underline underline-offset-4"
+              >
+                App real →
+              </a>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -864,7 +861,7 @@ export default function DiscordClone() {
             !isDesktopRuntime && "diavlocord-stage-scaled"
           )}
         >
-          <LoginVideo />
+          {LoginVideo ? <Suspense fallback={null}><LoginVideo /></Suspense> : null}
           <ServerSidebar />
           <ChannelSidebar onOpenSettings={openSettings} />
 
@@ -885,7 +882,7 @@ export default function DiscordClone() {
         </div>
       ) : (
         <div className="relative h-[100dvh] w-full bg-[#1E1F22] overflow-hidden text-[#DBDEE1] font-sans">
-          <LoginVideo />
+          {LoginVideo ? <Suspense fallback={null}><LoginVideo /></Suspense> : null}
 
           <main id="main-content" className="relative z-[20] h-full min-w-0 flex-1 flex flex-col overflow-hidden pb-[calc(5.15rem+env(safe-area-inset-bottom))]">
             <ChatView />
@@ -1035,7 +1032,11 @@ export default function DiscordClone() {
         initialTab={settingsTab}
       />
 
-      {!isDemoMode ? <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} /> : null}
+      {!isDemoMode ? (
+        <Suspense fallback={null}>
+          <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+        </Suspense>
+      ) : null}
 
       {isBackendEnabled && backendToken ? (
         <div
