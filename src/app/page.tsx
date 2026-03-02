@@ -533,7 +533,16 @@ export default function DiscordClone() {
       useStore.getState().resetData();
       useStore.getState().upsertUsers(demoData.users);
       useStore.getState().setBackendToken(null);
-      useStore.getState().loginUser(demoData.currentUser.id);
+      useStore.setState((state: any) => ({
+        currentUser: demoData.currentUser,
+        dmGroups: demoData.dmGroups,
+        messages: {
+          ...state.messages,
+          ...demoData.dmMessages,
+        },
+        dmRequestsIncoming: [],
+        dmRequestsOutgoing: [],
+      }));
       return;
     }
 
